@@ -34,7 +34,7 @@ COPY --from=frontend-builder /app/frontend/public ./frontend_standalone/public/
 COPY data/ ./data/
 
 # Pre-download embedding model at build time so container starts fast
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('BAAI/bge-large-en-v1.5')"
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 
 ENV PORT=8080
 EXPOSE 8080

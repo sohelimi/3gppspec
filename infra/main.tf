@@ -17,9 +17,9 @@ resource "google_artifact_registry_repository" "gppspec" {
   description   = "3gppSpec 3GPP chatbot images"
 }
 
-# ── Secret Manager (Gemini API key) ───────────────────────────────────────────
-resource "google_secret_manager_secret" "gemini_api_key" {
-  secret_id = "gemini-api-key"
+# ── Secret Manager (Groq API key) ─────────────────────────────────────────────
+resource "google_secret_manager_secret" "groq_api_key" {
+  secret_id = "groq-api-key"
   replication { auto {} }
 }
 
@@ -40,10 +40,10 @@ resource "google_cloud_run_v2_service" "gppspec" {
       }
 
       env {
-        name = "GEMINI_API_KEY"
+        name = "GROQ_API_KEY"
         value_source {
           secret_key_ref {
-            secret  = google_secret_manager_secret.gemini_api_key.secret_id
+            secret  = google_secret_manager_secret.groq_api_key.secret_id
             version = "latest"
           }
         }

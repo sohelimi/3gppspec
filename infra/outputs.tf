@@ -1,5 +1,5 @@
 output "cloud_run_url" {
-  value       = google_cloud_run_v2_service.spectrum.uri
+  value       = google_cloud_run_v2_service.gppspec.uri
   description = "Cloud Run service URL (before custom domain)"
 }
 

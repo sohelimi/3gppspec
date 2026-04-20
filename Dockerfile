@@ -25,18 +25,20 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend
 COPY backend/ ./backend/
 
-# Copy built frontend into FastAPI static files
+# Copy built frontend
 COPY --from=frontend-builder /app/frontend/.next/standalone ./frontend_standalone/
 COPY --from=frontend-builder /app/frontend/.next/static ./frontend_standalone/.next/static/
 COPY --from=frontend-builder /app/frontend/public ./frontend_standalone/public/
 
-# Copy ChromaDB (pre-built during CI or mounted as volume)
-COPY data/ ./data/
-
-# Pre-download embedding model at build time so container starts fast
+# Pre-download embedding model so container starts fast
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 
+# ChromaDB is mounted from GCS and copied to local disk at startup
+ENV CHROMA_DB_PATH=/data/chromadb
 ENV PORT=8080
 EXPOSE 8080
 
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8080"]
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

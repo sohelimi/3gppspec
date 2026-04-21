@@ -1,7 +1,12 @@
-// Production: NEXT_PUBLIC_API_URL="" → relative paths (/api/chat/stream)
-// Local dev: NEXT_PUBLIC_API_URL unset (undefined) → falls back to localhost
-// Must use ?? not || because empty string is falsy but valid
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// Determined at runtime in the browser — no build-time env var needed.
+// On localhost: talk directly to the FastAPI backend on port 8000.
+// Anywhere else (production): use relative paths, nginx routes /api/* to FastAPI.
+function getApiBase(): string {
+  if (typeof window === "undefined") return "";
+  const h = window.location.hostname;
+  return h === "localhost" || h === "127.0.0.1" ? "http://localhost:8000" : "";
+}
+const API_BASE = getApiBase();
 
 export interface Source {
   spec_name: string;

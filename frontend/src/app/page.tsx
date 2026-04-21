@@ -94,7 +94,7 @@ export default function Home() {
           </div>
           <div>
             <h1 className="text-sm font-semibold text-slate-100">3gppSpec</h1>
-            <p className="text-xs text-slate-400">3GPP AI Assistant · Powered by Gemini</p>
+            <p className="text-xs text-slate-400">3GPP AI Assistant · Powered by Groq · Llama 3.3 70B</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />

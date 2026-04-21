@@ -1,4 +1,6 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// In production NEXT_PUBLIC_API_URL="" (empty) so paths are relative: /api/chat/stream
+// In local dev it's "http://localhost:8000" so paths become http://localhost:8000/api/chat/stream
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface Source {
   spec_name: string;
@@ -25,7 +27,7 @@ export async function* streamChat(
   question: string,
   onSources?: (sources: Source[], subQueries: string[]) => void
 ): AsyncGenerator<string> {
-  const res = await fetch(`${API_URL}/api/chat/stream`, {
+  const res = await fetch(`${API_BASE}/api/chat/stream`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ question }),
@@ -61,6 +63,6 @@ export async function* streamChat(
 }
 
 export async function healthCheck(): Promise<{ status: string; chunks_indexed: number }> {
-  const res = await fetch(`${API_URL}/health`);
+  const res = await fetch(`${API_BASE}/health`);
   return res.json();
 }

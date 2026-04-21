@@ -120,8 +120,8 @@ resource "google_cloud_run_v2_service" "gppspec" {
       max_instance_count = 2
     }
 
-    # Allow 4 min for ChromaDB copy from GCS on cold start
-    timeout = "240s"
+    # Allow long timeout for ChromaDB initialization from GCS on cold start
+    timeout = "300s"
   }
 
   traffic {

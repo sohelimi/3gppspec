@@ -11,14 +11,16 @@ from backend.rag.retriever import retrieve_multi
 from backend.llm.groq_client import generate, generate_stream
 
 ANSWER_SYSTEM = """You are a 3GPP telecommunications standards expert assistant.
-Answer questions accurately and concisely based ONLY on the provided context from 3GPP specifications.
+
+Answer using the following priority:
+1. If the provided 3GPP spec context is relevant, base your answer on it and cite the spec (e.g. TS 38.101, TS 23.501) and release.
+2. If the context is insufficient or irrelevant, answer from your expert knowledge of 3GPP/5G/LTE telecommunications — clearly stating "Based on general 3GPP knowledge:" so the user knows it is not directly from the indexed specs.
 
 Rules:
-- Cite the spec number (e.g. TS 38.101, TS 23.501) and release when you reference something
-- If the context doesn't contain enough information, say so clearly
+- Never fabricate spec references or clause numbers
 - Use technical terminology correctly
 - Structure long answers with sections when helpful
-- Never fabricate spec references or clause numbers
+- Always be clear whether your answer comes from the indexed specs or general knowledge
 """
 
 
@@ -59,15 +61,9 @@ def answer(question: str, filters: dict = None) -> dict:
 
     # Step 2: Retrieve
     chunks = retrieve_multi(sub_queries, n_results=6, filters=filters)
-    if not chunks:
-        return {
-            "answer": "I couldn't find relevant information in the 3GPP specifications. Please try rephrasing your question.",
-            "sources": [],
-            "sub_queries": sub_queries,
-        }
 
-    # Step 3: Generate
-    context = _build_context(chunks)
+    # Step 3: Generate (always — falls back to LLM general knowledge if no chunks)
+    context = _build_context(chunks) if chunks else "No relevant chunks found in the indexed 3GPP specifications."
     prompt = f"""Context from 3GPP specifications:
 
 {context}
@@ -94,12 +90,7 @@ async def answer_stream(question: str, filters: dict = None):
     sub_queries = plan_queries(question)
     chunks = retrieve_multi(sub_queries, n_results=6, filters=filters)
 
-    if not chunks:
-        yield {"type": "token", "content": "I couldn't find relevant information in the 3GPP specifications."}
-        yield {"type": "done", "sources": [], "sub_queries": sub_queries}
-        return
-
-    context = _build_context(chunks)
+    context = _build_context(chunks) if chunks else "No relevant chunks found in the indexed 3GPP specifications."
     prompt = f"""Context from 3GPP specifications:
 
 {context}

@@ -78,7 +78,7 @@ resource "google_cloud_run_v2_service" "gppspec" {
 
       resources {
         limits = {
-          memory = "2Gi"
+          memory = "4Gi"
           cpu    = "2"
         }
         startup_cpu_boost = true

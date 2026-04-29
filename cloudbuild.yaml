@@ -1,0 +1,30 @@
+steps:
+  # Step 1: Download ChromaDB from GCS into the build context
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args: ['-m', 'cp', '-r', 'gs://gppspec-chromadb/chromadb', 'data/chromadb']
+
+  # Step 2: Build the Docker image (ChromaDB is now in data/chromadb/)
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - -t
+      - us-central1-docker.pkg.dev/$PROJECT_ID/gppspec/gppspec:$COMMIT_SHA
+      - -t
+      - us-central1-docker.pkg.dev/$PROJECT_ID/gppspec/gppspec:latest
+      - .
+
+  # Step 3: Push image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/gppspec/gppspec:$COMMIT_SHA']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/gppspec/gppspec:latest']
+
+images:
+  - us-central1-docker.pkg.dev/$PROJECT_ID/gppspec/gppspec:latest
+
+options:
+  machineType: E2_HIGHCPU_8
+  diskSizeGb: 100
+
+timeout: 3600s

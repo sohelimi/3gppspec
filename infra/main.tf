@@ -61,14 +61,6 @@ resource "google_cloud_run_v2_service" "gppspec" {
   template {
     service_account = google_service_account.cloudrun_sa.email
 
-    volumes {
-      name = "chromadb"
-      gcs {
-        bucket    = google_storage_bucket.chromadb.name
-        read_only = true
-      }
-    }
-
     containers {
       image = "${var.region}-docker.pkg.dev/${var.project_id}/gppspec/gppspec:latest"
 
@@ -82,11 +74,6 @@ resource "google_cloud_run_v2_service" "gppspec" {
           cpu    = "2"
         }
         startup_cpu_boost = true
-      }
-
-      volume_mounts {
-        name       = "chromadb"
-        mount_path = "/data"
       }
 
       env {
@@ -106,7 +93,7 @@ resource "google_cloud_run_v2_service" "gppspec" {
 
       env {
         name  = "CHROMA_DB_PATH"
-        value = "/data/chromadb"
+        value = "/app/data/chromadb"
       }
 
       env {
@@ -120,8 +107,8 @@ resource "google_cloud_run_v2_service" "gppspec" {
       max_instance_count = 2
     }
 
-    # Allow long timeout for ChromaDB initialization from GCS on cold start
-    timeout = "300s"
+    # ChromaDB is bundled in the image — cold start loads from local disk in ~5s
+    timeout = "120s"
   }
 
   traffic {

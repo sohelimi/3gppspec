@@ -41,7 +41,10 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # Pre-download embedding model at build time
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 
-ENV CHROMA_DB_PATH=/data/chromadb
+# Bundle ChromaDB (downloaded into data/chromadb by Cloud Build before docker build)
+COPY data/ ./data/
+
+ENV CHROMA_DB_PATH=/app/data/chromadb
 ENV PORT=8080
 ENV HOSTNAME=0.0.0.0
 EXPOSE 8080

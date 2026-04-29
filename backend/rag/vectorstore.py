@@ -1,5 +1,6 @@
 """ChromaDB vector store with local sentence-transformers embeddings."""
 
+import threading
 import chromadb
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 from loguru import logger
@@ -17,17 +18,29 @@ class VectorStore:
         self.persist_path = persist_path
         self._client = None
         self._ef = None
+        self._lock = threading.Lock()
 
     def _init(self):
         global _is_ready, _chunks_count
-        if self._client is None:
+        # Lock prevents a race where one thread sets _client but not yet _ef,
+        # causing a second thread to call get_or_create_collection(ef=None)
+        # which returns a collection with no embedding function → ValueError.
+        with self._lock:
+            if self._client is not None:
+                return  # Already initialised by another thread
+
             logger.info(f"Loading ChromaDB from {self.persist_path}")
-            self._client = chromadb.PersistentClient(path=self.persist_path)
-            logger.info(f"Loading embedding model: {EMBEDDING_MODEL}")
-            self._ef = SentenceTransformerEmbeddingFunction(
+            # Build embedding function FIRST so _ef is never None when _client is set
+            ef = SentenceTransformerEmbeddingFunction(
                 model_name=EMBEDDING_MODEL,
                 device="cpu",
             )
+            logger.info(f"Embedding model loaded: {EMBEDDING_MODEL}")
+            client = chromadb.PersistentClient(path=self.persist_path)
+            # Assign both together so no thread ever sees client-set / ef-unset
+            self._ef = ef
+            self._client = client
+
             # Mark ready and cache chunk count
             try:
                 col = self._client.get_or_create_collection(

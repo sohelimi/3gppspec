@@ -1,7 +1,11 @@
 steps:
   # Step 1: Download ChromaDB from GCS into the build context
+  # mkdir -p data first because data/chromadb/ is gitignored and won't exist in workspace
   - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['-m', 'cp', '-r', 'gs://gppspec-chromadb/chromadb', 'data/chromadb']
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'mkdir -p data && gsutil -m cp -r gs://gppspec-chromadb/chromadb data/chromadb'
 
   # Step 2: Build the Docker image (ChromaDB is now in data/chromadb/)
   - name: 'gcr.io/cloud-builders/docker'
